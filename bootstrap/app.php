@@ -12,7 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->statefulApi();
+        $middleware->validateCsrfTokens(except: [
+            'login',
+            'logout',
+            'sanctum/csrf-cookie'
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

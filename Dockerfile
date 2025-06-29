@@ -30,11 +30,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         exif \
         pcntl \
         bcmath \
-        soap \
     && docker-php-ext-enable opcache
 
 # Instala o Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copia os arquivos do projeto
 COPY . .
@@ -48,12 +47,21 @@ RUN if [ ! -f .env ]; then cp .env.example .env; fi
 # Instala as dependências do Composer
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Configura as permissões
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+# Publica os assets do Sanctum
+RUN php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
 
-# Expõe a porta 9000 para o PHP-FPM
+# Copia o arquivo de entrada personalizado
+COPY docker/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Define as permissões
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Expõe a porta 9000 e inicia o servidor PHP-FPM
 EXPOSE 9000
 
-# Comando de inicialização personalizado
-CMD ["sh", "-c", "php artisan key:generate && php artisan config:cache && php-fpm"]
+# Ponto de entrada personalizado
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Comando padrão
+CMD ["php-fpm"]
