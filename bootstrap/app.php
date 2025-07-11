@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\WrapApiResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'logout',
             'sanctum/csrf-cookie'
         ]);
+
+        $middleware->appendToGroup('api', WrapApiResponse::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
