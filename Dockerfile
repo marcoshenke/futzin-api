@@ -32,6 +32,15 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         bcmath \
     && docker-php-ext-enable opcache
 
+# Instala e configura o Xdebug
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && apk add --update linux-headers \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && apk del -f .build-deps
+
+COPY .docker/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 # Instala o Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
