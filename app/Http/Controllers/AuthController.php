@@ -21,7 +21,6 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
             $user = $request->user();
             $token = $user->createToken('authToken')->plainTextToken;
 
@@ -38,10 +37,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        $request->user()->currentAccessToken()->delete();
+       $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Successfully logged out']);
     }
 
@@ -87,7 +83,6 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'User registered successfully!',
-                'user' => $user,
                 'token' => $token,
             ], 201);
 
